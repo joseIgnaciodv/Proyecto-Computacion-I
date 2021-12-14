@@ -1,38 +1,39 @@
 import streamlit as st
 import os
 import subprocess
+import nltk
+from sklearn.model_selection import cross_validate
 
-def contar_ficheros(ruta_carpeta: str):
-    carpeta = list(os.scandir(ruta_carpeta))
-    return len(carpeta)
+nltk.download('punkt')
 
-def seleccionar_carpeta(ruta):
-    fichero = subprocess.Popen(r'explorer /select,')
-    print(fichero.stdout.read())
+def contar_ficheros(lista_ficheros: list):
+    return len(lista_ficheros)
 
+def gradient_boosted_tree():
+    return ""
 
-    
+def SVM():
+    return ""
 
-col1, col2 = st.columns(2)
+def seleccionar_algoritmo(algoritmo: str):
+    if algoritmo == "Gradient Boosted Tree":
+        gradient_boosted_tree()
+    elif algoritmo == "Support Vector Machine":
+        SVM()
 
-with col1:
-    odio = st.text_input("Noticias Odio", value="")
-with col2:
-    st.write(".")
-    abrir_fichero = st.button("Abrir Odio")
+def main():
+    lista_odio = st.file_uploader('Noticias Odio: ', accept_multiple_files=True, type='txt')
+    lista_no_odio = st.file_uploader('Noticias No Odio: ', accept_multiple_files=True, type='txt')
 
-col1, col2 = st.columns(2)
+    algoritmo = st.selectbox("Seleccionar Algoritmo: ", ["Gradient Boosted Tree", "Support Vector Machine"])
 
-with col1:
-    odio = st.text_input("Noticias No Odio", value="")
-with col2:
-    st.write(".")
-    abrir_fichero_no = st.button("Abrir No Odio")
+    num_odio = contar_ficheros(lista_odio)
+    num_no_odio = contar_ficheros(lista_no_odio)
 
-algoritmo = st.selectbox("Seleccionar Algoritmo: ", ["Gradient Boosted Tree", "Support Vector Machine"])
+    preview = st.text_area("Vista Previa", "Ejemplares 'Odio': " + "\t" + str(num_odio) + "\nEjemplares 'No Odio': " + "\t" + str(num_no_odio) + "\nTotal: " + "\t" + str(num_odio + num_no_odio) + "\nAlgoritmo Seleccionado: " + "\t" + algoritmo)
 
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        ejecutar = st.button("Ejecutar")
 
-
-if abrir_fichero:
-    st.write("")
-    seleccionar_carpeta(r"C:\Users\delva\Downloads\noticias_odio_pais\noticias_odio_pais")
+main()
