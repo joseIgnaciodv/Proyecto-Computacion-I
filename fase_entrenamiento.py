@@ -34,4 +34,5 @@ algoritmo = st.selectbox("Seleccionar Algoritmo: ", ["Gradient Boosted Tree", "S
 
 
 if abrir_fichero:
+    st.write("")
     seleccionar_carpeta(r"C:\Users\delva\Downloads\noticias_odio_pais\noticias_odio_pais")
