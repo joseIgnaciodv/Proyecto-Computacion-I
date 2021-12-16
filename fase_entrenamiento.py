@@ -1,6 +1,4 @@
 import streamlit as st
-import os
-import subprocess
 import nltk
 import string
 from nltk.tokenize import word_tokenize
@@ -10,6 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from nltk.stem.snowball import SpanishStemmer
 import pandas as pd
+import plotly.express as px
 
 nltk.download('punkt')
 
@@ -20,11 +19,13 @@ def tokenizar_texto(texto):
     lista_tokens = word_tokenize(str(texto.read(), encoding="utf8").lower(), language="spanish")
     return lista_tokens
 
+
 def limpiar_texto(lista_tokens: list):
     palabras = []
     fichero_parada = open("Lista_Stop_Words.txt", "r", encoding="utf8")
     lista_parada = fichero_parada.read().split("\n")
     puntuacion = list(string.punctuation)
+    # lista_unicode = ['\u201C', '\u201D', '\u2018', '\u2019']
     lista_parada += puntuacion
     for palabra in lista_tokens:
         if palabra not in lista_parada:
@@ -56,25 +57,32 @@ def seleccionar_algoritmo(algoritmo: str):
     elif algoritmo == "Arbol Decision":
         cv = cross_validate(DecisionTreeClassifier,)
 
+def visualizacion_previa(odio, no_odio, algoritmo):
+    num_odio = contar_ficheros(odio)
+    num_no_odio = contar_ficheros(no_odio)
+
+    ejemplares = {'Odio': num_odio, 'No Odio': num_no_odio}
+    st.text_area("Vista Previa", "Ejemplares 'Odio': " + "\t" + str(num_odio) + "\nEjemplares 'No Odio': " + "\t" + str(num_no_odio) + "\nTotal: " + "\t" + str(num_odio + num_no_odio) + "\nAlgoritmo Seleccionado: " + "\t" + algoritmo, height=130)
+
+    df = pd.DataFrame.from_dict(ejemplares, orient='index', columns=['Ejemplares'])
+    df = df.rename_axis('Clase')
+    figura = px.bar(df, y="Ejemplares", color="Ejemplares")
+    st.plotly_chart(figura)
+
+
 def main():
     lista_odio = st.file_uploader('Noticias Odio: ', accept_multiple_files=True, type='txt')
     lista_no_odio = st.file_uploader('Noticias No Odio: ', accept_multiple_files=True, type='txt')
 
     algoritmo = st.selectbox("Seleccionar Algoritmo: ", ["Gradient Boosted Tree", "Support Vector Machine", "Arbol Decision"])
 
-    num_odio = contar_ficheros(lista_odio)
-    num_no_odio = contar_ficheros(lista_no_odio)
-
-    prueba = {'Odio': num_odio, 'No Odio': num_no_odio}
-    preview = st.text_area("Vista Previa", "Ejemplares 'Odio': " + "\t" + str(num_odio) + "\nEjemplares 'No Odio': " + "\t" + str(num_no_odio) + "\nTotal: " + "\t" + str(num_odio + num_no_odio) + "\nAlgoritmo Seleccionado: " + "\t" + algoritmo, height=130)
-
-    df = pd.DataFrame.from_dict(prueba, orient='index')
-
-    st.bar_chart(df)
+    visualizacion_previa(lista_odio, lista_no_odio, algoritmo)
     col1, col2, col3 = st.columns(3)
     with col2:
         ejecutar = st.button("Ejecutar")
+    
+    coleccion_odio = generar_coleccion(lista_odio)
+    coleccion_no_odio = generar_coleccion(lista_no_odio)
+    #if ejecutar:
 
 main()
-
-
