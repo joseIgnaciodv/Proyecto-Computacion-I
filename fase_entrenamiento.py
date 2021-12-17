@@ -1,11 +1,15 @@
+from pandas.core.algorithms import mode
 import streamlit as st
 import nltk
 import string
 from nltk.tokenize import word_tokenize
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import make_pipeline
 from nltk.stem.snowball import SpanishStemmer
 import pandas as pd
 import plotly.express as px
@@ -25,7 +29,6 @@ def limpiar_texto(lista_tokens: list):
     fichero_parada = open("Lista_Stop_Words.txt", "r", encoding="utf8")
     lista_parada = fichero_parada.read().split("\n")
     puntuacion = list(string.punctuation)
-    # lista_unicode = ['\u201C', '\u201D', '\u2018', '\u2019']
     lista_parada += puntuacion
     for palabra in lista_tokens:
         if palabra not in lista_parada:
@@ -50,12 +53,38 @@ def generar_coleccion(lista_textos: list):
     return coleccion
 
 def seleccionar_algoritmo(algoritmo: str):
+    model = ""
     if algoritmo == "Gradient Boosted Tree":
-        cv = cross_validate(GradientBoostingClassifier, )
+        model = GradientBoostingClassifier()
     elif algoritmo == "Support Vector Machine":
-        cv = cross_validate(SVC, )
+        model = SVC()
     elif algoritmo == "Arbol Decision":
-        cv = cross_validate(DecisionTreeClassifier,)
+        model = DecisionTreeClassifier()
+    return model
+
+def asociar_clase(odio: list, no_odio: list):
+    clase_odio = []
+    clase_no_odio = []
+    for texto_odio in odio:
+        clase_odio.append(1)
+    for texto_no in no_odio:
+        clase_no_odio.append(0)
+    return clase_odio + clase_no_odio
+
+def entrenar_modelo(algoritmo: str, coleccion_documentos: list, clases: list):
+    tf = TfidfVectorizer()
+    matriz_idf = tf.fit_transform(coleccion_documentos).toarray()
+    df = pd.DataFrame(matriz_idf , columns=tf.get_feature_names_out())
+    clf = seleccionar_algoritmo(algoritmo)
+    modelo = clf.fit(df, clases)
+
+def puntuacion_cross_validation(algoritmo: str, coleccion_documentos: list, clases: list):
+    modelo = seleccionar_algoritmo(algoritmo)
+    clf = make_pipeline(TfidfVectorizer(), modelo)
+    y_pred = cross_val_predict(clf, coleccion_documentos, clases, cv=10)
+    cm = confusion_matrix(clases, y_pred)
+    return cm
+
 
 def visualizacion_previa(odio, no_odio, algoritmo):
     num_odio = contar_ficheros(odio)
@@ -69,7 +98,6 @@ def visualizacion_previa(odio, no_odio, algoritmo):
     figura = px.bar(df, y="Ejemplares", color="Ejemplares")
     st.plotly_chart(figura)
 
-
 def main():
     lista_odio = st.file_uploader('Noticias Odio: ', accept_multiple_files=True, type='txt')
     lista_no_odio = st.file_uploader('Noticias No Odio: ', accept_multiple_files=True, type='txt')
@@ -81,8 +109,13 @@ def main():
     with col2:
         ejecutar = st.button("Ejecutar")
     
-    coleccion_odio = generar_coleccion(lista_odio)
-    coleccion_no_odio = generar_coleccion(lista_no_odio)
-    #if ejecutar:
+    odio = generar_coleccion(lista_odio)
+    no_odio = generar_coleccion(lista_no_odio)
 
+    coleccion = odio + no_odio
+    clases = asociar_clase(odio, no_odio)
+
+    if ejecutar:
+        resultados_entrenamiento = puntuacion_cross_validation(algoritmo, coleccion, clases)
+        st.write(resultados_entrenamiento)
 main()
