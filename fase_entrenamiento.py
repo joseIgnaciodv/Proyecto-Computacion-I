@@ -1,20 +1,20 @@
-from pandas.core.algorithms import mode
 import streamlit as st
-import nltk
+#import nltk
 import string
 from nltk.tokenize import word_tokenize
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import make_pipeline
-from nltk.stem.snowball import SpanishStemmer
+import Stemmer                              # Descargar PyStemmer, pip install PyStemmer
 import pandas as pd
 import plotly.express as px
+import plotly.figure_factory as plt
 
-nltk.download('punkt')
+# nltk.download('punkt')                # Solo descargar una vez
 
 def contar_ficheros(lista_ficheros: list):
     return len(lista_ficheros)
@@ -37,9 +37,9 @@ def limpiar_texto(lista_tokens: list):
 
 def stemming(lista_palabras: list):
     texto = ""
-    stemmer = SpanishStemmer()
+    stemmer = Stemmer.Stemmer('spanish')
     for palabra in lista_palabras:
-        s = stemmer.stem(palabra)
+        s = stemmer.stemWord(palabra)
         texto = texto + " " + s
     return texto
 
@@ -66,25 +66,40 @@ def asociar_clase(odio: list, no_odio: list):
     clase_odio = []
     clase_no_odio = []
     for texto_odio in odio:
-        clase_odio.append(1)
+        clase_odio.append('Odio')
     for texto_no in no_odio:
-        clase_no_odio.append(0)
+        clase_no_odio.append('No Odio')
     return clase_odio + clase_no_odio
+
+def precision(tp: int, fp: int):
+    return tp/(tp + fp)
+
+def recall(tp: int, fn: int):
+    return tp/(tp + fn)
+
 
 def entrenar_modelo(algoritmo: str, coleccion_documentos: list, clases: list):
     tf = TfidfVectorizer()
     matriz_idf = tf.fit_transform(coleccion_documentos).toarray()
     df = pd.DataFrame(matriz_idf , columns=tf.get_feature_names_out())
     clf = seleccionar_algoritmo(algoritmo)
-    modelo = clf.fit(df, clases)
+    X_train, X_test, Y_train, Y_test = train_test_split(df, clases, test_size=0.3)
 
-def puntuacion_cross_validation(algoritmo: str, coleccion_documentos: list, clases: list):
-    modelo = seleccionar_algoritmo(algoritmo)
-    clf = make_pipeline(TfidfVectorizer(), modelo)
-    y_pred = cross_val_predict(clf, coleccion_documentos, clases, cv=10)
-    cm = confusion_matrix(clases, y_pred)
-    return cm
-
+    X_train = pd.get_dummies(X_train)
+    X_test = pd.get_dummies(X_test)
+    modelo = clf.fit(X_train, Y_train)
+    y_pred = modelo.predict(X_test)
+    tn, fp, fn, tp = confusion_matrix(Y_test, y_pred).ravel()
+    cm = [[tn, fp], [fn, tp]]
+    st.write("Precision: " + str(precision(tp, fp) * 100) + " %")
+    st.write("Recall: " + str(recall(tp, fn) * 100) + " %")
+    st.write("Resultados Entrenamiento: ")
+    figura = plt.create_annotated_heatmap(cm, colorscale='Viridis')
+    st.plotly_chart(figura)
+    f = open("vocabulario.txt", 'w', encoding="utf8")
+    f.write(str(tf.vocabulary_))
+    f.close()
+    return modelo
 
 def visualizacion_previa(odio, no_odio, algoritmo):
     num_odio = contar_ficheros(odio)
@@ -111,11 +126,11 @@ def main():
     
     odio = generar_coleccion(lista_odio)
     no_odio = generar_coleccion(lista_no_odio)
-
     coleccion = odio + no_odio
+
     clases = asociar_clase(odio, no_odio)
 
     if ejecutar:
-        resultados_entrenamiento = puntuacion_cross_validation(algoritmo, coleccion, clases)
-        st.write(resultados_entrenamiento)
+        modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
+
 main()
