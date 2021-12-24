@@ -8,11 +8,12 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import make_pipeline
+from datetime import datetime
 import Stemmer                              # Descargar PyStemmer, pip install PyStemmer
 import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as plt
+import joblib
 
 # nltk.download('punkt')                # Solo descargar una vez
 
@@ -77,7 +78,6 @@ def precision(tp: int, fp: int):
 def recall(tp: int, fn: int):
     return tp/(tp + fn)
 
-
 def entrenar_modelo(algoritmo: str, coleccion_documentos: list, clases: list):
     tf = TfidfVectorizer()
     matriz_idf = tf.fit_transform(coleccion_documentos).toarray()
@@ -91,14 +91,17 @@ def entrenar_modelo(algoritmo: str, coleccion_documentos: list, clases: list):
     y_pred = modelo.predict(X_test)
     tn, fp, fn, tp = confusion_matrix(Y_test, y_pred).ravel()
     cm = [[tn, fp], [fn, tp]]
-    st.write("Precision: " + str(precision(tp, fp) * 100) + " %")
-    st.write("Recall: " + str(recall(tp, fn) * 100) + " %")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Precision: ", "{:.2f}".format((precision(tp, fp) * 100)) + "%", delta="{:.2f}".format((precision(tp, fp) * 100) - 95) + "%")
+    with col2:
+        st.metric("Accuracy: ", "{:.2f}".format(modelo.score(X_test, Y_test) * 100) + "%", delta="{:.2f}".format((modelo.score(X_test, Y_test) * 100) - 95) + "%")
+    with col3:
+        st.metric("Recall: ", "{:.2f}".format((recall(tp, fn) * 100)) + "%", delta="{:.2f}".format((recall(tp, fn) * 100) - 95) + "%")
     st.write("Resultados Entrenamiento: ")
     figura = plt.create_annotated_heatmap(cm, colorscale='Viridis')
     st.plotly_chart(figura)
-    f = open("vocabulario.txt", 'w', encoding="utf8")
-    f.write(str(tf.vocabulary_))
-    f.close()
+    joblib.dump(tf.vocabulary_, 'vocabulario.bin')
     return modelo
 
 def visualizacion_previa(odio, no_odio, algoritmo):
@@ -121,16 +124,37 @@ def main():
 
     visualizacion_previa(lista_odio, lista_no_odio, algoritmo)
     col1, col2, col3 = st.columns(3)
+    with col1:
+        st.write("")
     with col2:
-        ejecutar = st.button("Ejecutar")
-    
+        ejecutar = st.radio("Ejecutar Modelo", ['Ejecutar'])
+    with col3:
+        st.write("")
+
     odio = generar_coleccion(lista_odio)
     no_odio = generar_coleccion(lista_no_odio)
     coleccion = odio + no_odio
 
     clases = asociar_clase(odio, no_odio)
 
-    if ejecutar:
+    if ejecutar == 'Ejecutar':
+        st.text("Resultados")
+        st.write("")
+        fecha = datetime.now()
+        st.write("Fecha realizacion entrenamiento: " + fecha.strftime("%d-%m-%Y %H:%M"))
+        st.write("")
         modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.write("")
+    with col2:
+        guardar = st.button("Guardar Modelo")
+    with col3:
+        st.write("")
+    
+    if guardar:
+        joblib.dump(modelo_entrenado, 'modelo.bin')
+        st.success("Modelo Guardado correctamente")
 
 main()
