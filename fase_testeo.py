@@ -47,12 +47,7 @@ def predecir_clases(modelo, coleccion_noticias: list):
     predicciones = modelo.predict(matriz_idf)
     return predicciones
 
-<<<<<<< HEAD
 '''def main():
-=======
-def main():
-    st.title("Fase de Testeo")
->>>>>>> ad2bc6a63b5299ac85e101f90aa4f8b8cb17dee5
     unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
     modelo = st.file_uploader("Modelo")
     modelo = joblib.load(modelo)
@@ -82,9 +77,6 @@ def main():
         tabla_resultados.to_excel('resultados.xlsx') 
     elif guradar_resultados == 'Txt':
         tabla_resultados.to_csv('resultados.txt',encoding="utf8")
-<<<<<<< HEAD
 
 
 main()'''
-=======
->>>>>>> ad2bc6a63b5299ac85e101f90aa4f8b8cb17dee5
