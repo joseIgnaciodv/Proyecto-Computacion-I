@@ -14,24 +14,20 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as plt
 import joblib
-
+# tokenizador que utiliza nltk
 # nltk.download('punkt')                # Solo descargar una vez
-'''
-Funcion que cuenta el numero de fichero que incluye una lista
-'''
+
+# Funcion que cuenta el numero de fichero que incluye una lista
 def contar_ficheros(lista_ficheros: list):
     return len(lista_ficheros)
-'''
-Funcion que convierte a minusculas el texto pasado como argumento y lo tokeniza/separa las palabras del texto
-'''
+
+# Funcion que convierte a minusculas el texto pasado como argumento y lo tokeniza/separa las palabras del texto
 def tokenizar_texto(texto):
     lista_tokens = word_tokenize(str(texto.read(), encoding="utf8").lower(), language="spanish")
     return lista_tokens
 
-'''
-Funcion en la que aplicamos un lista de parada, es decir, le pasamos un fichero con las palabras o tokens que nos
-interesa eliminar del texto procesado y las quitamos
-'''
+# Funcion en la que aplicamos un lista de parada, es decir, le pasamos un fichero con las palabras o tokens que nos
+# interesa eliminar del texto procesado y las quitamos
 def limpiar_texto(lista_tokens: list):
     palabras = []
     # Abrimos nuestra lista de parada
@@ -49,19 +45,27 @@ def limpiar_texto(lista_tokens: list):
             palabras.append(palabra)
     return palabras
 
+# Funcion con la que aplicaremos el stemming (esta técnica nos ayudará a simplificar o reducir los tokens o palabras al stem) 
 def stemming(lista_palabras: list):
     texto = ""
+    # Cogemos el stemmer de snowball en español
     stemmer = Stemmer.Stemmer('spanish')
     for palabra in lista_palabras:
+        # Cogemos el stem de cada palabra
         s = stemmer.stemWord(palabra)
         texto = texto + " " + s
     return texto
 
+# Funcion que genera una coleccion con los textos procesados, es decir, aplicando la tokenizacion, la transformacion a
+# minusculas, eliminar las palabras que no se quieren a partir de una lista de parada y aplicacion de un stemmer(Snowball)
 def generar_coleccion(lista_textos: list):
     coleccion = []
     for texto in lista_textos:
+        # Aplicamos tokenizacion del texto
         tokens = tokenizar_texto(texto)
+        # Aplicamos lista de parada
         lista_limpia = limpiar_texto(tokens)
+        # Aplicamos stemmer
         texto = stemming(lista_limpia)
         coleccion.append(texto)
     return coleccion
@@ -76,6 +80,7 @@ def seleccionar_algoritmo(algoritmo: str):
         model = DecisionTreeClassifier()
     return model
 
+# Funcion que asigna el tipo de noticia (odio o no odio) a la que pertenece el texto
 def asociar_clase(odio: list, no_odio: list):
     clase_odio = []
     clase_no_odio = []
@@ -131,6 +136,8 @@ def visualizacion_previa(odio, no_odio, algoritmo):
 
 def main():
 
+    st.title("Fase de entrenamiento")
+
     # Permitimos subir varios archivos mediante el componente "file_uploader" de Streamlit
     lista_odio = st.file_uploader('Noticias Odio: ', accept_multiple_files=True, type='txt')
     lista_no_odio = st.file_uploader('Noticias No Odio: ', accept_multiple_files=True, type='txt')
@@ -143,29 +150,15 @@ def main():
     # ejemplares de delitos de odio vs los de no odio
     visualizacion_previa(lista_odio, lista_no_odio, algoritmo)
 
-    #
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.write("")
-    with col2:
-        ejecutar = st.radio("Ejecutar Modelo", ['Ejecutar'])
-    with col3:
-        st.write("")
-
-    #
+    # Generamos la coleccion total de textos de odio
     odio = generar_coleccion(lista_odio)
+    # Generamos la coleccion total de textos de no odio
     no_odio = generar_coleccion(lista_no_odio)
+    # Concatenamos ambas colecciones
     coleccion = odio + no_odio
 
+    # Indicamos el tipo de noticia
     clases = asociar_clase(odio, no_odio)
-
-    if ejecutar == 'Ejecutar':
-        st.text("Resultados")
-        st.write("")
-        fecha = datetime.now()
-        st.write("Fecha realizacion entrenamiento: " + fecha.strftime("%d-%m-%Y %H:%M"))
-        st.write("")
-        modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -176,7 +169,12 @@ def main():
         st.write("")
     
     if guardar:
+        st.title("Resultados")
+        st.write("")
+        fecha = datetime.now()
+        st.write("Fecha realizacion entrenamiento: " + fecha.strftime("%d-%m-%Y %H:%M"))
+        st.write("")
+        modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
         joblib.dump(modelo_entrenado, 'modelo.bin')
         st.success("Modelo Guardado correctamente")
-
 main()
