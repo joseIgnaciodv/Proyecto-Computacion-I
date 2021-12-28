@@ -47,7 +47,12 @@ def predecir_clases(modelo, coleccion_noticias: list):
     predicciones = modelo.predict(matriz_idf)
     return predicciones
 
+<<<<<<< HEAD
 '''def main():
+=======
+def main():
+    st.title("Fase de Testeo")
+>>>>>>> ad2bc6a63b5299ac85e101f90aa4f8b8cb17dee5
     unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
     modelo = st.file_uploader("Modelo")
     modelo = joblib.load(modelo)
@@ -58,28 +63,28 @@ def predecir_clases(modelo, coleccion_noticias: list):
     for n in unlabeled:
         noticias.append(n.name)
 
-    l = []
+    lista_odio = []
     for p in predicciones:
         if p == 'Odio':
-            l.append('Si')
+            lista_odio.append('Si')
         else:
-            l.append('No')
+            lista_odio.append('No')
 
-    resultados = {'Noticia': noticias, 'Odio': l}
+    resultados = {'Noticia': noticias, 'Odio': lista_odio}
     tabla_resultados = pd.DataFrame.from_dict(resultados)
 
-    col1, col2, col3, col4 = st.columns(4)
     
-    with col1:
-        st.dataframe(tabla_resultados, width=500)
-    with col4:
-        guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
+    st.dataframe(tabla_resultados, width=500)
+    guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
     if guradar_resultados == 'CSV':
         tabla_resultados.to_csv('resultados.csv',encoding="utf8")
     elif guradar_resultados == 'Excel':
         tabla_resultados.to_excel('resultados.xlsx') 
     elif guradar_resultados == 'Txt':
         tabla_resultados.to_csv('resultados.txt',encoding="utf8")
+<<<<<<< HEAD
 
 
 main()'''
+=======
+>>>>>>> ad2bc6a63b5299ac85e101f90aa4f8b8cb17dee5
