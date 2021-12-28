@@ -16,21 +16,34 @@ import plotly.figure_factory as plt
 import joblib
 
 # nltk.download('punkt')                # Solo descargar una vez
-
+'''
+Funcion que cuenta el numero de fichero que incluye una lista
+'''
 def contar_ficheros(lista_ficheros: list):
     return len(lista_ficheros)
-
+'''
+Funcion que convierte a minusculas el texto pasado como argumento y lo tokeniza/separa las palabras del texto
+'''
 def tokenizar_texto(texto):
     lista_tokens = word_tokenize(str(texto.read(), encoding="utf8").lower(), language="spanish")
     return lista_tokens
 
-
+'''
+Funcion en la que aplicamos un lista de parada, es decir, le pasamos un fichero con las palabras o tokens que nos
+interesa eliminar del texto procesado y las quitamos
+'''
 def limpiar_texto(lista_tokens: list):
     palabras = []
+    # Abrimos nuestra lista de parada
     fichero_parada = open("Lista_Stop_Words.txt", "r", encoding="utf8")
+    # Hemos leido el fichero como un string y necesitamos una lista de strings con las palabras a eliminar,
+    # para ello aplicamos la funcion split para separar el texto por los espacios
     lista_parada = fichero_parada.read().split("\n")
+    # Creamos una lista con los diferentes caracteres(!"#$%&'()*+, -./:;<=>?@[\]^_`{|}~) y los añadimos a nuestra
+    # lista de parada, pues no nos son relevantes tampoco a la hora de aplicar nuestro algoritmo de aprendizaje
     puntuacion = list(string.punctuation)
     lista_parada += puntuacion
+    # Aplicamos la lista de parada y nos quedamos solo con las palabras/tokens que nos interesan
     for palabra in lista_tokens:
         if palabra not in lista_parada:
             palabras.append(palabra)
@@ -117,12 +130,20 @@ def visualizacion_previa(odio, no_odio, algoritmo):
     st.plotly_chart(figura)
 
 def main():
+
+    # Permitimos subir varios archivos mediante el componente "file_uploader" de Streamlit
     lista_odio = st.file_uploader('Noticias Odio: ', accept_multiple_files=True, type='txt')
     lista_no_odio = st.file_uploader('Noticias No Odio: ', accept_multiple_files=True, type='txt')
 
+    # Habilitamos una caja que nos permita elegir el algoritmo que queremos utilizar
     algoritmo = st.selectbox("Seleccionar Algoritmo: ", ["Gradient Boosted Tree", "Support Vector Machine", "Arbol Decision"])
 
+    # Llamamos a nuestra funcion previamente creada que nos permite visualizar el numero de ejemplares de odio, 
+    # de no odio, los totales y el algoritmo selccionado. También nos muestra un gráfico de barras de con el numero de 
+    # ejemplares de delitos de odio vs los de no odio
     visualizacion_previa(lista_odio, lista_no_odio, algoritmo)
+
+    #
     col1, col2, col3 = st.columns(3)
     with col1:
         st.write("")
@@ -131,6 +152,7 @@ def main():
     with col3:
         st.write("")
 
+    #
     odio = generar_coleccion(lista_odio)
     no_odio = generar_coleccion(lista_no_odio)
     coleccion = odio + no_odio
