@@ -64,22 +64,18 @@ elif selected_page == paginas["pagina_2"]:
     for n in unlabeled:
         noticias.append(n.name)
 
-    l = []
+    lista_odio = []
     for p in predicciones:
         if p == 'Odio':
-            l.append('Si')
+            lista_odio.append('Si')
         else:
-            l.append('No')
+            lista_odio.append('No')
 
-    resultados = {'Noticia': noticias, 'Odio': l}
+    resultados = {'Noticia': noticias, 'Odio': lista_odio}
     tabla_resultados = pd.DataFrame.from_dict(resultados)
 
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.dataframe(tabla_resultados, width=500)
-    with col4:
-        guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
+    st.dataframe(tabla_resultados, width=500)
+    guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
     if guradar_resultados == 'CSV':
         tabla_resultados.to_csv('resultados.csv',encoding="utf8")
     elif guradar_resultados == 'Excel':
