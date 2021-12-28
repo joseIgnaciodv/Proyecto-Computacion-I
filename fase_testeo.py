@@ -47,7 +47,7 @@ def predecir_clases(modelo, coleccion_noticias: list):
     predicciones = modelo.predict(matriz_idf)
     return predicciones
 
-def main():
+'''def main():
     unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
     modelo = st.file_uploader("Modelo")
     modelo = joblib.load(modelo)
@@ -82,4 +82,4 @@ def main():
         tabla_resultados.to_csv('resultados.txt',encoding="utf8")
 
 
-main()
+main()'''
