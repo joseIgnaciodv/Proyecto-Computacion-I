@@ -177,4 +177,3 @@ def main():
         modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
         joblib.dump(modelo_entrenado, 'modelo.bin')
         st.success("Modelo Guardado correctamente")
-main()
