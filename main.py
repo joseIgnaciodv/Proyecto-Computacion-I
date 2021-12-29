@@ -87,6 +87,11 @@ elif selected_page == paginas["pagina_2"]:
 
     st.dataframe(tabla_resultados, width=500)
     st.write("")
+    res_grafica = grafica_resultados(tabla_resultados, 0, 0)
+    fig = px.pie(values=res_grafica.values(), names=res_grafica.keys(), title="<b><i>Resultados Clasificacion</b></i>")
+    fig.update_traces(hovertemplate = "Clase: %{label} <br>Clasificados: %{value}</br>")
+    st.plotly_chart(fig)
+    st.write("")
 
     col1, col2, col3 = st.columns(3)
 
