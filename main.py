@@ -1,8 +1,11 @@
 import streamlit as st
+import os
+from tkinter import filedialog, Tk
 from fase_entrenamiento import *
 from fase_testeo import *
 import joblib
 import pandas as pd
+import plotly.express as px
 
 paginas = {
 "pagina_1": "Fase Entrenamiento",
@@ -10,6 +13,10 @@ paginas = {
 }
 
 selected_page = st.sidebar.radio("Selecciona la página", paginas.values())
+
+root = Tk()
+root.attributes('-topmost',True)
+root.withdraw()
 
 if selected_page == paginas["pagina_1"]: 
     st.title("Fase de entrenamiento")
@@ -44,14 +51,18 @@ if selected_page == paginas["pagina_1"]:
     with col3:
         st.write("")
     
+    
     if guardar:
+        dir_act = os.getcwd()
+        dirname = filedialog.askdirectory(parent=root, initialdir=dir_act, title='Seleccione una carpeta')
+
         st.title("Resultados")
         st.write("")
         fecha = datetime.now()
         st.write("Fecha realizacion entrenamiento: " + fecha.strftime("%d-%m-%Y %H:%M"))
         st.write("")
         modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
-        joblib.dump(modelo_entrenado, 'modelo.bin')
+        joblib.dump(modelo_entrenado, dirname + '/modelo.bin')
         st.success("Modelo Guardado correctamente")
 elif selected_page == paginas["pagina_2"]:
     unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
@@ -75,10 +86,26 @@ elif selected_page == paginas["pagina_2"]:
     tabla_resultados = pd.DataFrame.from_dict(resultados)
 
     st.dataframe(tabla_resultados, width=500)
-    guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
-    if guradar_resultados == 'CSV':
-        tabla_resultados.to_csv('resultados.csv',encoding="utf8")
-    elif guradar_resultados == 'Excel':
-        tabla_resultados.to_excel('resultados.xlsx') 
-    elif guradar_resultados == 'Txt':
-        tabla_resultados.to_csv('resultados.txt',encoding="utf8")
+    st.write("")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.write("")
+    with col2:
+        guardar = st.button("Guardar Resultados")
+    with col3:
+        guradar_resultados = st.radio("Guardar Resultados: ", ['CSV', 'Excel', 'Txt'])
+
+    if guardar:
+        dir_act = os.getcwd()
+        dirname = filedialog.askdirectory(parent=root, initialdir=dir_act, title='Seleccione una carpeta')
+        if guradar_resultados == 'CSV':
+            tabla_resultados.to_csv(dirname + '/resultados.csv',encoding="utf8")
+            st.success("Resultados Guardados correctamente")
+        elif guradar_resultados == 'Excel':
+            tabla_resultados.to_excel(dirname + '/resultados.xlsx')
+            st.success("Resultados Guardados correctamente") 
+        elif guradar_resultados == 'Txt':
+            tabla_resultados.to_csv(dirname + '/resultados.txt',encoding="utf8")
+            st.success("Resultados Guardados correctamente")
