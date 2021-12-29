@@ -117,7 +117,7 @@ def entrenar_modelo(algoritmo: str, coleccion_documentos: list, clases: list):
     with col3:
         st.metric("Recall: ", "{:.2f}".format((recall(tp, fn) * 100)) + "%", delta="{:.2f}".format((recall(tp, fn) * 100) - 95) + "%")
     st.write("Resultados Entrenamiento: ")
-    figura = plt.create_annotated_heatmap(cm, colorscale='Viridis')
+    figura = plt.create_annotated_heatmap(cm, x=['Verdadero No Odio', 'Verdadero Odio'], y=['Predicho No Odio', 'Predicho Odio'], colorscale='Viridis')
     st.plotly_chart(figura)
     joblib.dump(tf.vocabulary_, 'vocabulario.bin')
     return modelo
