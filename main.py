@@ -54,7 +54,7 @@ if selected_page == paginas["pagina_1"]:
     
     if guardar:
         dir_act = os.getcwd()
-        dirname = filedialog.askdirectory(parent=root, initialdir=dir_act, title='Seleccione una carpeta')
+        nombre_fichero = filedialog.asksaveasfile('w', parent=root, initialdir=dir_act, title='Seleccione una carpeta', defaultextension=".bin", filetypes=(("Binario", "*.bin"),))
 
         st.title("Resultados")
         st.write("")
@@ -62,7 +62,7 @@ if selected_page == paginas["pagina_1"]:
         st.write("Fecha realizacion entrenamiento: " + fecha.strftime("%d-%m-%Y %H:%M"))
         st.write("")
         modelo_entrenado = entrenar_modelo(algoritmo, coleccion, clases)
-        joblib.dump(modelo_entrenado, dirname + '/modelo.bin')
+        joblib.dump(modelo_entrenado, nombre_fichero.name)
         st.success("Modelo Guardado correctamente")
 elif selected_page == paginas["pagina_2"]:
     unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
@@ -104,13 +104,15 @@ elif selected_page == paginas["pagina_2"]:
 
     if guardar:
         dir_act = os.getcwd()
-        dirname = filedialog.askdirectory(parent=root, initialdir=dir_act, title='Seleccione una carpeta')
         if guradar_resultados == 'CSV':
-            tabla_resultados.to_csv(dirname + '/resultados.csv',encoding="utf8")
+            nombre_fichero = filedialog.asksaveasfile('w', parent=root, initialdir=dir_act, title='Seleccione una carpeta', defaultextension='.csv', filetypes=(('CSV', "*.csv"),))
+            tabla_resultados.to_csv(nombre_fichero.name, encoding="utf8")
             st.success("Resultados Guardados correctamente")
         elif guradar_resultados == 'Excel':
-            tabla_resultados.to_excel(dirname + '/resultados.xlsx')
+            nombre_fichero = filedialog.asksaveasfile('w', parent=root, initialdir=dir_act, title='Seleccione una carpeta', defaultextension='.xlsx', filetypes=(('Excel', "*.xlsx"),))
+            tabla_resultados.to_excel(nombre_fichero.name)
             st.success("Resultados Guardados correctamente") 
         elif guradar_resultados == 'Txt':
-            tabla_resultados.to_csv(dirname + '/resultados.txt',encoding="utf8")
+            nombre_fichero = filedialog.asksaveasfile('w', parent=root, initialdir=dir_act, title='Seleccione una carpeta', defaultextension='.txt', filetypes=(('Texto Plano', "*.txt"),))
+            tabla_resultados.to_csv(nombre_fichero.name,encoding="utf8")
             st.success("Resultados Guardados correctamente")
