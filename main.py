@@ -65,9 +65,10 @@ if selected_page == paginas["pagina_1"]:
         joblib.dump(modelo_entrenado, nombre_fichero.name)
         st.success("Modelo Guardado correctamente")
 elif selected_page == paginas["pagina_2"]:
-    unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt')
+    unlabeled = st.file_uploader("Unlabeled", accept_multiple_files=True, type='txt', key='clasificar')
     modelo = st.file_uploader("Modelo")
     modelo = joblib.load(modelo)
+    ver_noticias = list(unlabeled)
     coleccion_unlabeled = generar_coleccion(unlabeled)
     predicciones = predecir_clases(modelo, coleccion_unlabeled)
     
@@ -84,8 +85,14 @@ elif selected_page == paginas["pagina_2"]:
 
     resultados = {'Noticia': noticias, 'Odio': lista_odio}
     tabla_resultados = pd.DataFrame.from_dict(resultados)
+    col1, col2 = st.columns([2,1])
+    with col1:
+        st.dataframe(tabla_resultados)
+    with col2:
+        noticia = st.selectbox("Ver Noticias", noticias, key='noticia')
+    indice = noticias.index(st.session_state.noticia)
+    st.text_area('Noticia Seleccionada', str(ver_noticias[indice].read(), encoding="utf8"), height=250)
 
-    st.dataframe(tabla_resultados, width=500)
     st.write("")
     res_grafica = grafica_resultados(tabla_resultados, 0, 0)
     fig = px.pie(values=res_grafica.values(), names=res_grafica.keys(), title="<b><i>Resultados Clasificacion</b></i>")

@@ -31,6 +31,7 @@ def stemming(lista_palabras: list):
         texto = texto + " " + s
     return texto
 
+@st.cache
 def generar_coleccion(lista_textos: list):
     coleccion = []
     for texto in lista_textos:
@@ -40,6 +41,7 @@ def generar_coleccion(lista_textos: list):
         coleccion.append(texto)
     return coleccion
 
+@st.cache
 def predecir_clases(modelo, coleccion_noticias: list):
     tf = TfidfVectorizer(vocabulary=joblib.load('vocabulario.bin'))
     vectores_noticias = tf.fit_transform(coleccion_noticias).toarray()
@@ -47,6 +49,7 @@ def predecir_clases(modelo, coleccion_noticias: list):
     predicciones = modelo.predict(matriz_idf)
     return predicciones
 
+@st.cache
 def grafica_resultados(lista_ficheros: pd.DataFrame, cont_odio: int, cont_no: int):
     for clase in lista_ficheros['Odio']:
         if clase == 'Si':

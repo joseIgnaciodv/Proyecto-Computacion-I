@@ -1,5 +1,4 @@
 import streamlit as st
-#import nltk
 import string
 from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
@@ -14,8 +13,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as plt
 import joblib
-# tokenizador que utiliza nltk
-# nltk.download('punkt')                # Solo descargar una vez
 
 # Funcion que cuenta el numero de fichero que incluye una lista
 def contar_ficheros(lista_ficheros: list):
@@ -58,6 +55,7 @@ def stemming(lista_palabras: list):
 
 # Funcion que genera una coleccion con los textos procesados, es decir, aplicando la tokenizacion, la transformacion a
 # minusculas, eliminar las palabras que no se quieren a partir de una lista de parada y aplicacion de un stemmer(Snowball)
+@st.cache
 def generar_coleccion(lista_textos: list):
     coleccion = []
     for texto in lista_textos:
@@ -81,6 +79,7 @@ def seleccionar_algoritmo(algoritmo: str):
     return model
 
 # Funcion que asigna el tipo de noticia (odio o no odio) a la que pertenece el texto
+@st.cache
 def asociar_clase(odio: list, no_odio: list):
     clase_odio = []
     clase_no_odio = []
